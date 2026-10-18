@@ -2,14 +2,22 @@ import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { Public } from './decorators/public.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
   async register(@Body() dto: RegisterDto) {
-    const user = await this.authService.register(dto.mobile, dto.password);
+    const user = await this.authService.register(
+      dto.mobile,
+      dto.password,
+      dto.role,
+    );
     return user;
   }
 
@@ -25,11 +33,11 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(@Body() body: { refreshToken: string }) {
-    if (!body.refreshToken)
+  async refresh(@Body() dto: RefreshTokenDto) {
+    if (!dto.refreshToken)
       throw new UnauthorizedException('رفرش توکن وارد نشده است');
 
-    const tokens = await this.authService.refreshToken(body.refreshToken);
+    const tokens = await this.authService.refreshToken(dto.refreshToken);
     return {
       accessToken: tokens?.newAccessToken,
       refreshToken: tokens?.newRefreshToken,

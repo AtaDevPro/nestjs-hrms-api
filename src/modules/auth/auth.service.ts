@@ -27,6 +27,12 @@ export class AuthService {
     password: string,
     role: UserRole = UserRole.EMPLOYEE,
   ) {
+    const existingUser = await this.findUserByMobile(mobile);
+    if (existingUser)
+      throw new UnauthorizedException(
+        'کاربری با این شماره موبایل قبلا ثبت نام کرده است',
+      );
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = this.userRepository.create({
       mobile,
@@ -92,10 +98,15 @@ export class AuthService {
     }
     const userId = payload.sub;
 
-    const refreshTokens = await this.rtRepository.find({
-      where: { user: { id: userId }, revokedAt: IsNull() },
-      relations: { user: true },
-    });
+    const refreshTokens = await this.rtRepository
+      .createQueryBuilder('rt')
+      .leftJoinAndSelect('rt.user', 'user')
+      .where('user.id = :id', { id: userId })
+      .andWhere('rt.revokedAt IS NULL')
+      .getMany();
+
+    if (!refreshTokens.length)
+      throw new UnauthorizedException('رفرش توکن نامعتبر است');
 
     for (const refreshToken of refreshTokens) {
       const isValidToken = await bcrypt.compare(
@@ -156,6 +167,12 @@ export class AuthService {
   async findUserById(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('کاربری یافت نشد');
+    return user;
+  }
+
+  async findUserByMobile(mobile: string) {
+    const user = await this.userRepository.findOne({ where: { mobile } });
+    if (!user) return false;
     return user;
   }
 }

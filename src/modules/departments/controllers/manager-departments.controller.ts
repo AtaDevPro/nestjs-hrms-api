@@ -12,7 +12,12 @@ import { CreateDepartmentDto } from '../dto/create-department.dto';
 import { UpdateDepartmentDto } from '../dto/update-department.dto';
 import { Department } from '../entities/department.entity';
 import { ManagerDepartmentsService } from '../services/manager-departments.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { UserRole } from '../../../shared/enums/user-role.enum';
 
+@ApiBearerAuth()
+@Roles(UserRole.MANAGER)
 @Controller('manager/departments')
 export class ManagerDepartmentsController {
   constructor(private readonly departmentsService: ManagerDepartmentsService) {}
