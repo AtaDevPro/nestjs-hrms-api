@@ -18,7 +18,7 @@ export class Attendance {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: 'varchar', length: 10, nullable: false })
   j_date: string;
 
   @Column({ name: 'check_in_time', type: 'timestamp', nullable: true })
@@ -27,7 +27,7 @@ export class Attendance {
   @Column({ name: 'check_out_time', type: 'timestamp', nullable: true })
   checkOutTime: Date | null;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'varchar', length: 250, nullable: true })
   notes: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
